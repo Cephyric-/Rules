@@ -134,12 +134,12 @@
 									$.ajax( {
 										url: 'edit.php?type=edit&part=cat&id=' + objectid + '&lang=' + v.name + '&new=' + v.value,
 										error: function( jqXHR, textStatus, errorThrown ) {
-											alert( 'An error occured: ' + textStatus )
+											alert( 'An error occured: ' + textStatus );
 										},
 										success: function( data ) {
 											console.log( data );
 											languages[ v.name ][ Number( objectid ) ].name = v.value;
-											if( $( '#wrapper' ).hasClass( v.name ) ) $( '#' +  $( '#editform input[ name=type ]' ).val() + ( ( Number( objectid ) + 1 ) + ' .cat-name' ).html( v.value );
+											if( $( '#wrapper' ).hasClass( v.name ) ) $( '#' +  $( '#editform input[ name=type ]' ).val() + ( ( Number( objectid ) + 1 ) + ' .cat-name' ) ).html( v.value );
 										}
 									} );
 								}
