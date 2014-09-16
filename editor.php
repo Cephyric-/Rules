@@ -134,7 +134,7 @@
 									$.ajax( {
 										url: 'edit.php?type=edit&part=cat&id=' + objectid + '&lang=' + v.name + '&new=' + v.value,
 										error: function( jqXHR, textStatus, errorThrown ) {
-											alert( 'An error occured: ' + textStatus );
+											alert( 'An error occured: ' + textStatus )
 										},
 										success: function( data ) {
 											console.log( data );
