@@ -1,0 +1,198 @@
+<html>
+	<head>
+		<title>GangwarsRP Server Rules</title>
+		<meta name="description" content="GangwarsRP Server Rules">
+		<meta charset="UTF-8">
+		<link rel="stylesheet" type="text/css" href="rules.css" />
+		<script src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+		<script>
+			var d = new Date();
+			var cur = '';
+			var ruleUpdated = false;
+			var ruleStr = '';
+			var rules = new Object();
+			
+			$( document ).ready( function() {
+				GetRuleSet();
+				setTimeout( function() { $( '#before-load' ).fadeOut( function() {
+					$( '.wrapper' ).fadeIn();
+					$( '#before-load' ).remove();
+					heightChange();
+				} ) }, 1000 );
+			} );
+			
+			$( window ).resize( function() {
+				heightChange();
+			} );
+			
+			function GameBackground() {
+				$('body').css('background', 'rgba(0, 0, 0, 0)');
+			}
+			
+			var page_phrases = {
+				"page_title": {
+					"english": "Server Rules",
+					"danish": "Server Regler"
+				},
+				"page_expand": {
+					"english": "Show All",
+					"danish": "Vis Alle"
+				},
+				"page_unexpand": {
+					"english": "Contract All",
+					"danish": "Skjul Alle"
+				},
+				"page_updated": {
+					"english": "The following rules have been updated: ",
+					"danish": "Følgende regler er blevet opdateret: "
+				}
+			};
+			
+			function GetRuleSet() {
+				$.get( 'rules.php', function( data ) { rules = data; LoadRules( 'English' ) } );
+			}
+			
+			function LoadRules( lang ) {
+				if( cur == lang ) return;
+				
+				$( '#rules-text' ).html( '' );
+				if( cur != lang ) for ( var i in page_phrases ) if ( $( '#' + i ) != null ) $( '#' + i ).html( page_phrases[ i ][ lang ] );
+				
+				if( !$( '#lang-buttons' ).html() ) {
+					for( var curlang in rules[ 'languages' ] ) {
+						var langbutton = document.createElement( 'img' );
+						langbutton.src = rules[ 'languages' ][ curlang ] + '.png';
+						langbutton.onclick = function() { LoadRules( ( this.src ).replace( /^.*?([^\/]+)\..+?$/, '$1' ) ) };
+						document.getElementById( 'lang-buttons' ).appendChild( langbutton );
+					}
+				}
+				
+				
+				cur = lang;
+				
+				var ruleStr = '';
+				
+				for( var i in rules[ lang ] ) {
+					var cat_header = document.createElement( 'section' );
+					cat_header.className = 'cat-header';
+					cat_header.id = 'cat-header' + ( Number( i ) + 1 );
+					document.getElementById( 'rules-text' ).appendChild( cat_header );
+					
+					var cat_name_header = document.createElement( 'section' );
+					cat_name_header.className = 'cat-header-text';
+					cat_name_header.id = 'cat-header-text' + ( Number( i ) + 1 );
+					cat_name_header.innerHTML = ( Number( i ) + 1 ) + '. ' + rules[ lang ][ i ].name + '<br />';
+					cat_name_header.onclick = function() {
+						$( this ).siblings().last().slideToggle('slow');
+						$( this ).siblings().last().css('webkitTransform', 'scale(1)');
+						$( this ).siblings().last().css('mozTransform', 'scale(1)');
+						$( this ).siblings().last().hasClass( 'o' ) ? $( this ).siblings().last().removeClass( 'o' ) : $( this ).siblings().last().addClass( 'o' );
+					}
+					cat_header.appendChild( cat_name_header );
+					
+					var cat_wrap = document.createElement( 'section' );
+					cat_wrap.className = 'cat-wrap';
+					cat_wrap.style.display = 'none';
+					cat_header.appendChild( cat_wrap );
+
+					for( var rule in rules[ lang ][ i ].rules ) {
+						var cat_num = document.createElement( 'span' );
+						cat_num.className = 'rule-number';
+						cat_num.innerHTML = ( Number( rule ) + 1 ) + '. ';
+						cat_wrap.appendChild( cat_num );
+						
+						var rule_header = document.createElement( 'aside' );
+						rule_header.className = 'rule-header';
+						rule_header.innerHTML = rules[ lang ][ i ].rules[ rule ].text;
+						var rule_date = new Date( Date.parse( rules[ lang ][ i ].rules[ rule ].last_edit ) );
+						rule_date.setDate( rule_date.getDate() + 5 );
+						var rule_updated = rule_date > d;
+						if ( rule_updated ) {
+							ruleUpdated = true;
+							ruleStr += ( Number( i ) + 1 ) + '.' + ( Number( rule ) + 1 ) + ', ';
+							$( rule_header ).css( 'color', '#f00' ).css( 'font-weight', '600' );
+							$( cat_wrap ).slideDown( 'slow' ).addClass( 'o' );
+						}
+						cat_wrap.appendChild( rule_header );
+					}
+				}
+				
+				if( ruleUpdated ) {
+					ruleStr = ruleStr.substring( 0, ruleStr.length - 2 );
+					$('.updated-text').html( page_phrases[ 'page_updated' ][ lang ] + ruleStr );
+					$('.updated-list').css( 'display', 'block' );
+				}
+				
+				heightChange();
+			}
+			
+			function expandAll() {
+				if( $( '#page_expand' ).hasClass( 'c' ) ) {
+					$( '.cat-wrap' ).each( function() {
+						if( !( $( this ).hasClass( 'o' ) ) ) $( this ).addClass( 'o' ).slideToggle( 'slow' );
+					} );
+					$( '#page_expand' ).removeClass( 'c' ).html( page_phrases[ 'page_unexpand' ][ cur ] );
+				} else {
+					$( '.cat-wrap' ).each( function() {
+						if( $( this ).hasClass( 'o' ) ) $( this ).removeClass( 'o' ).slideToggle( 'slow' );
+					} );
+					$( '#page_expand' ).addClass( 'c' ).html( page_phrases[ 'page_expand' ][ cur ] );
+				}
+			}
+			
+			function heightChange() {
+				if( ruleUpdated ) {
+					conthigh = Math.floor( $( window ).height() - 203 ) - Math.floor( $( '.updated-list' ).outerHeight() );
+					
+					$( '.page-content' ).css( 'height', conthigh + 'px' );
+					$( '.cont-top' ).css( 'opacity', 1 );
+					$( '.cont-bot' ).css( { 'marginTop': ( conthigh - 50 ), 'opacity': 1 } );
+					$( '.content-wrapper' ).css( 'height', conthigh + 'px' );
+				} else {
+					conthigh = Math.floor( $( window ).height() - 203 );
+					
+					$( '.page-content' ).css( { 'height': conthigh + 'px', 'width': '90%' } );
+					$( '.cont-top' ).css( { 'opacity': 1, 'width': '72%' } );
+					$( '.cont-bot' ).css( { 'marginTop': ( conthigh - 50 ), 'opacity': 1, 'width': '72%' } );
+					$( '.content-wrapper' ).css( 'height', conthigh + 'px' );
+				}
+				
+				$('.page-content').css('overflow-y', 'scroll');
+			}
+		</script>
+	</head>
+	<body>
+		
+		<section id="before-load">
+			<p>Loading rules...</p>
+			<img src="icon_loading2.gif" />
+		</section>
+		<section class="wrapper">
+			<section class="back-button">
+				<a href="http://www.gangwarsrp.com">
+					<img src="back.png">
+				</a>
+			</section>
+			<header class="page-header">
+				<aside class="language-buttons" id="lang-buttons"></aside>
+				<p id="page_title">server rules</p>
+				
+			</header>
+			<section class="page-extras">
+				<section class="rules-expander c" onclick="javascript:expandAll()" id="page_expand">Show All</section>
+			</section>
+			<section class="updated-list">
+				<section class="updated-text" id="page_updated">
+					The following rules have been updated: 
+				</section>
+			</section>
+			<section class="page-content">
+				<section class="content-wrapper">
+					<img src="conttop.png" class="cont-top" />
+					<section id="rules-text"></section>
+					<img src="contbot.png" class="cont-bot" />
+				</section>
+			</section>
+		</section>
+	</body>
+</html>
