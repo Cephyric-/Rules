@@ -38,7 +38,7 @@ DELIMITER $$
 			DELETE FROM `rules_text` WHERE `rule_id` = rule_num;
 			DELETE FROM `rules` WHERE `id` = rule_num;
 			
-			SELECT COUNT( * ) FROM `rules` WHERE `order` > ruleorder INTO rule_count;
+			SELECT COUNT( * ) FROM `rules` WHERE `order` > ruleorder AND `cat_id` = cat_num INTO rule_count;
 			WHILE ruleorder < rule_count DO
 				UPDATE `rules` SET `order` = ruleorder WHERE `order` = ruleorder + 1 AND `cat_id` = cat_num;
 				SET ruleorder = ruleorder + 1;
@@ -67,5 +67,22 @@ DELIMITER $$
 			
 			UPDATE `rules_text` SET `rule` = newrule WHERE `lang` = curlang AND `rule_id` = rule_num;
 			UPDATE `rules` SET `last_edit` = NOW() WHERE `id` = rule_num;
+		END $$
+DELIMITER ;
+
+DELIMITER $$
+	CREATE PROCEDURE MoveRule( IN catorder INT( 32 ), IN ruleorder INT( 32 ), IN newpos INT( 32 ) )
+		BEGIN
+			DECLARE cat_num, rule_num, rule_count INT DEFAULT 0;
+			
+			SELECT `id` FROM `categories` WHERE `order` = catorder INTO cat_num;
+			SELECT `id` FROM `rules` WHERE `order` = ruleorder AND `cat_id` = cat_num INTO rule_num;
+			UPDATE `rules` SET `order` = newpos WHERE `order` = ruleorder AND `cat_id` = cat_num;
+			
+			SET rule_count = newpos;
+			WHILE rule_count != ruleorder DO
+				UPDATE `rules` SET `order` = rule_count - 1 WHERE `order` = rule_count AND `cat_id` = cat_num AND `id` != rule_num;
+				SET rule_count = rule_count - 1;
+			END WHILE;
 		END $$
 DELIMITER ;

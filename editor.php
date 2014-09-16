@@ -80,6 +80,7 @@
 			var deleted = [];
 			
 			function GetRuleSets() {
+				languages = [];
 				$.get( 'rules.php', function( data ) { languages = data } );
 			}
 			
@@ -142,17 +143,6 @@
 											if( $( '#wrapper' ).hasClass( v.name ) ) $( '#' +  $( '#editform input[ name=type ]' ).val() + ( ( Number( objectid ) + 1 ) + ' .cat-name' ) ).html( v.value );
 										}
 									} );
-								}
-							} );
-							
-							
-							$.each( $( '#editform input[ type=text ]' ), function( k, v ) {
-								if( v.value != languages[ v.name ][ $( '#editform input[ name=meta ]' ).val() ].name ) {
-									languages[ v.name ][ $( '#editform input[ name=meta ]' ).val() ].name = v.value;
-									deleted.push( { 'type': 'edit', 'part': 'cat', 'lang': v.name, 'id': $( '#editform input[ name=meta ]' ).val(), 'value': v.value } );
-									if( $( '#wrapper' ).hasClass( v.name ) ) $( '#' +  $( '#editform input[ name=type ]' ).val() + ( Number( $( '#editform input[ name=meta ]' ).val() ) + 1 ) + ' .cat-name' ).html( v.value );
-									
-									// TODO: Show apply changes button if not already there
 								}
 							} );
 							
@@ -231,7 +221,21 @@
 					catrow.appendChild( rulewrap );
 					
 					$( rulewrap ).sortable({
-						axis: 'y'
+						axis: 'y',
+						start: function( e, ui ) {
+							$( this ).attr( 'data-previndex', ui.item.index() );
+						},
+						stop: function( e, ui ) {
+							if( $( this ).attr( 'data-previndex' ) != ui.item.index() ) {
+								var newIndex = ui.item.index();
+								var oldIndex = $( this ).attr( 'data-previndex' );
+								console.log( 'Old position: ' + oldIndex );
+								console.log( 'New position: ' + newIndex );
+								console.log( ui.item.attr( 'id' ) );
+							}
+							
+							$( this ).removeAttr( 'data-previndex' );
+						}
 					} );
 					
 					// Rules
